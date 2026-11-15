@@ -47,6 +47,19 @@ export interface NextPrayerInfo {
   isTomorrow: boolean;
 }
 
+export interface PrayerIntervalProgress {
+  previousName: PrayerName;
+  previousTimeFormatted: string;
+  nextName: PrayerName;
+  nextTimeFormatted: string;
+  intervalSeconds: number;
+  elapsedSeconds: number;
+  remainingSeconds: number;
+  countdownFormatted: string;
+  progress: number;
+  isTomorrow: boolean;
+}
+
 export interface AdhanBackground {
   id: string;
   title: string;
@@ -476,5 +489,68 @@ export function getNextPrayerInfo(
     countdownSeconds: diff,
     countdownFormatted: `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`,
     isTomorrow: true,
+  };
+}
+
+export function getPrayerIntervalProgress(
+  times: DailyPrayerTimes,
+  currentMinutes: number,
+  currentSeconds: number = 0
+): PrayerIntervalProgress {
+  const order: PrayerName[] = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+  const nowTotalSeconds = currentMinutes * 60 + currentSeconds;
+
+  let previousName: PrayerName = 'Isha';
+  let prevSeconds = (times.Isha - 1440) * 60;
+  let nextName: PrayerName = 'Fajr';
+  let nextSeconds = times.Fajr * 60;
+  let isTomorrow = false;
+
+  if (nowTotalSeconds < times.Fajr * 60) {
+    previousName = 'Isha';
+    prevSeconds = (times.Isha - 1440) * 60;
+    nextName = 'Fajr';
+    nextSeconds = times.Fajr * 60;
+    isTomorrow = false;
+  } else if (nowTotalSeconds >= times.Isha * 60) {
+    previousName = 'Isha';
+    prevSeconds = times.Isha * 60;
+    nextName = 'Fajr';
+    nextSeconds = (times.Fajr + 1440) * 60;
+    isTomorrow = true;
+  } else {
+    for (let i = 1; i < order.length; i++) {
+      const candidate = order[i];
+      if (times[candidate] * 60 > nowTotalSeconds) {
+        previousName = order[i - 1];
+        prevSeconds = times[previousName] * 60;
+        nextName = candidate;
+        nextSeconds = times[nextName] * 60;
+        break;
+      }
+    }
+  }
+
+  const intervalSeconds = Math.max(1, nextSeconds - prevSeconds);
+  const remainingSeconds = Math.max(0, nextSeconds - nowTotalSeconds);
+  const elapsedSeconds = Math.max(0, Math.min(intervalSeconds, nowTotalSeconds - prevSeconds));
+  const progress = Math.max(0, Math.min(1, elapsedSeconds / intervalSeconds));
+
+  const hrs = Math.floor(remainingSeconds / 3600);
+  const mins = Math.floor((remainingSeconds % 3600) / 60);
+  const secs = remainingSeconds % 60;
+  const countdownFormatted = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+  return {
+    previousName,
+    previousTimeFormatted: formatMinutesToHHMM(times[previousName]),
+    nextName,
+    nextTimeFormatted: formatMinutesToHHMM(times[nextName]),
+    intervalSeconds,
+    elapsedSeconds,
+    remainingSeconds,
+    countdownFormatted,
+    progress,
+    isTomorrow,
   };
 }

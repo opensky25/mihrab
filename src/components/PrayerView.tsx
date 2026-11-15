@@ -7,6 +7,7 @@ import {
   WORLD_CITIES,
   formatMinutesToHHMM,
   formatUtcOffsetLabel,
+  getPrayerIntervalProgress,
   type AdhanBackground,
   type AsrSchool,
   type CalculationMethodId,
@@ -17,11 +18,14 @@ import {
   type PrayerName,
 } from '../utils/prayerTimes';
 import type { Translations } from '../utils/i18n';
+import { PrayerProgressRing } from './PrayerProgressRing';
 
 interface PrayerViewProps {
   city: CityInfo;
   manualOffsetMinutes: number;
   effectiveOffsetHours: number;
+  currentMinutes: number;
+  currentSeconds: number;
   formattedTimeWithSeconds: string;
   formattedDate: string;
   methodId: CalculationMethodId;
@@ -46,6 +50,8 @@ export function PrayerView({
   city,
   manualOffsetMinutes,
   effectiveOffsetHours,
+  currentMinutes,
+  currentSeconds,
   formattedTimeWithSeconds,
   formattedDate,
   methodId,
@@ -65,6 +71,11 @@ export function PrayerView({
 }: PrayerViewProps) {
   const [cityQuery, setCityQuery] = useState('');
   const [regionFilter, setRegionFilter] = useState<'ALL' | CityInfo['region']>('ALL');
+
+  const intervalProgress = useMemo(
+    () => getPrayerIntervalProgress(prayerTimes, currentMinutes, currentSeconds),
+    [prayerTimes, currentMinutes, currentSeconds]
+  );
 
   const filteredCities = useMemo(() => {
     const q = cityQuery.trim().toLowerCase();
@@ -141,65 +152,74 @@ export function PrayerView({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          {PRAYER_NAMES.map((prayer) => {
-            const isNext = nextPrayer.name === prayer;
-            const mode = alertModes[prayer];
-            return (
-              <div
-                key={prayer}
-                className={`flex flex-col justify-between rounded-xl border p-4 transition-colors ${
-                  isNext
-                    ? 'border-[#F5B942]/70 bg-[#1A212E]'
-                    : 'border-white/10 bg-[#121720]'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className={`text-sm font-semibold ${isNext ? 'text-[#F5B942]' : 'text-slate-200'}`}>
-                      {t.prayer.names[prayer]}
-                    </span>
-                    {isNext && (
-                      <span className="text-[11px] font-medium text-[#F5B942]">{t.prayer.next}</span>
-                    )}
-                  </div>
-                  <div dir="ltr" className="font-mono-tabular mt-2 text-2xl font-bold text-white">
-                    {formatMinutesToHHMM(prayerTimes[prayer])}
-                  </div>
-                </div>
+        <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-12">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-white/10 bg-[#121720] p-5 xl:col-span-4">
+            <div className="mb-2 text-xs font-medium text-slate-400">
+              {t.prayer.nextPrayerIn}
+            </div>
+            <PrayerProgressRing interval={intervalProgress} t={t} />
+          </div>
 
-                <div className="mt-4 flex items-center justify-between gap-2 border-t border-white/[0.07] pt-3">
-                  <button
-                    type="button"
-                    onClick={() => onTogglePrayerAlert(prayer)}
-                    aria-label={`${t.prayer.names[prayer]} alert: ${mode}`}
-                    className="tv-focus flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
-                  >
-                    {mode === 'adhan' && <Volume2 className="h-3.5 w-3.5 text-[#F5B942]" />}
-                    {mode === 'banner' && <Bell className="h-3.5 w-3.5 text-emerald-400" />}
-                    {mode === 'off' && <BellOff className="h-3.5 w-3.5 text-slate-500" />}
-                    <span>
-                      {mode === 'adhan'
-                        ? t.prayer.adhanMode
-                        : mode === 'banner'
-                          ? t.prayer.bannerMode
-                          : t.prayer.offMode}
-                    </span>
-                  </button>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:col-span-8">
+            {PRAYER_NAMES.map((prayer) => {
+              const isNext = nextPrayer.name === prayer;
+              const mode = alertModes[prayer];
+              return (
+                <div
+                  key={prayer}
+                  className={`flex flex-col justify-between rounded-xl border p-4 transition-colors ${
+                    isNext
+                      ? 'border-[#F5B942]/70 bg-[#1A212E]'
+                      : 'border-white/10 bg-[#121720]'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-sm font-semibold ${isNext ? 'text-[#F5B942]' : 'text-slate-200'}`}>
+                        {t.prayer.names[prayer]}
+                      </span>
+                      {isNext && (
+                        <span className="text-[11px] font-medium text-[#F5B942]">{t.prayer.next}</span>
+                      )}
+                    </div>
+                    <div dir="ltr" className="font-mono-tabular mt-2 text-2xl font-bold text-white">
+                      {formatMinutesToHHMM(prayerTimes[prayer])}
+                    </div>
+                  </div>
 
-                  {prayer !== 'Sunrise' && (
+                  <div className="mt-4 flex items-center justify-between gap-2 border-t border-white/[0.07] pt-3">
                     <button
                       type="button"
-                      onClick={() => onTriggerAdhan(prayer, false)}
-                      className="tv-focus rounded px-1.5 py-0.5 text-[11px] font-medium text-slate-400 hover:text-[#F5B942]"
+                      onClick={() => onTogglePrayerAlert(prayer)}
+                      aria-label={`${t.prayer.names[prayer]} alert: ${mode}`}
+                      className="tv-focus flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
                     >
-                      {t.prayer.test}
+                      {mode === 'adhan' && <Volume2 className="h-3.5 w-3.5 text-[#F5B942]" />}
+                      {mode === 'banner' && <Bell className="h-3.5 w-3.5 text-emerald-400" />}
+                      {mode === 'off' && <BellOff className="h-3.5 w-3.5 text-slate-500" />}
+                      <span>
+                        {mode === 'adhan'
+                          ? t.prayer.adhanMode
+                          : mode === 'banner'
+                            ? t.prayer.bannerMode
+                            : t.prayer.offMode}
+                      </span>
                     </button>
-                  )}
+
+                    {prayer !== 'Sunrise' && (
+                      <button
+                        type="button"
+                        onClick={() => onTriggerAdhan(prayer, false)}
+                        className="tv-focus rounded px-1.5 py-0.5 text-[11px] font-medium text-slate-400 hover:text-[#F5B942]"
+                      >
+                        {t.prayer.test}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </section>
 

@@ -117,6 +117,9 @@ export interface Translations {
     adhanBackgroundsNote: string;
     postAdhanSupplications: string;
     fullScreenView: string;
+    nextPrayerIn: string;
+    previousPrayer: string;
+    elapsed: string;
     names: {
       Fajr: string;
       Sunrise: string;
@@ -311,6 +314,9 @@ export const TRANSLATIONS: Record<LanguageCode, Translations> = {
       adhanBackgroundsNote: 'Displayed full-screen during Adhan',
       postAdhanSupplications: 'Post-Adhan Supplications',
       fullScreenView: 'Full-Screen View',
+      nextPrayerIn: 'Next Prayer Countdown',
+      previousPrayer: 'Previous',
+      elapsed: 'elapsed',
       names: {
         Fajr: 'Fajr',
         Sunrise: 'Sunrise',
@@ -503,6 +509,9 @@ export const TRANSLATIONS: Record<LanguageCode, Translations> = {
       adhanBackgroundsNote: 'تُعرض بملء الشاشة أثناء رفع الأذان',
       postAdhanSupplications: 'أدعية ما بعد الأذان',
       fullScreenView: 'عرض بملء الشاشة',
+      nextPrayerIn: 'العد التنازلي للصلاة القادمة',
+      previousPrayer: 'السابقة',
+      elapsed: 'منقضٍ',
       names: {
         Fajr: 'الفجر',
         Sunrise: 'الشروق',
@@ -695,6 +704,9 @@ export const TRANSLATIONS: Record<LanguageCode, Translations> = {
       adhanBackgroundsNote: "Affichés en plein écran pendant l'appel à la prière",
       postAdhanSupplications: 'Invocations après Adhan',
       fullScreenView: 'Plein écran',
+      nextPrayerIn: 'Compte à rebours',
+      previousPrayer: 'Précédente',
+      elapsed: 'écoulé',
       names: {
         Fajr: 'Fajr',
         Sunrise: 'Lever',
@@ -887,6 +899,9 @@ export const TRANSLATIONS: Record<LanguageCode, Translations> = {
       adhanBackgroundsNote: 'Ezan okunurken tam ekran gösterilir',
       postAdhanSupplications: 'Ezan Sonrası Dualar',
       fullScreenView: 'Tam Ekran Görünüm',
+      nextPrayerIn: 'Sonraki Vakte Kalan',
+      previousPrayer: 'Önceki',
+      elapsed: 'geçti',
       names: {
         Fajr: 'İmsak',
         Sunrise: 'Güneş',

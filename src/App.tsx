@@ -567,6 +567,8 @@ export default function App() {
             city={activeCity}
             manualOffsetMinutes={prefs.manualOffsetMinutes}
             effectiveOffsetHours={cityClock.effectiveOffsetHours}
+            currentMinutes={cityClock.totalMinutes}
+            currentSeconds={cityClock.seconds}
             formattedTimeWithSeconds={cityClock.formattedTimeWithSeconds}
             formattedDate={cityClock.formattedDate}
             methodId={prefs.methodId}

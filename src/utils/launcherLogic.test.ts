@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   calculateDailyPrayerTimes,
   getNextPrayerInfo,
+  getPrayerIntervalProgress,
   formatMinutesToHHMM,
   formatUtcOffsetLabel,
   WORLD_CITIES,
@@ -93,6 +94,40 @@ test('getNextPrayerInfo wraps around to Fajr after Isha', () => {
   assert.equal(nextAtNight.countdownSeconds, 6 * 3600);
   assert.equal(formatMinutesToHHMM(sample.Fajr), '05:00');
   assert.equal(formatUtcOffsetLabel(3.5), 'UTC+03:30');
+});
+
+test('getPrayerIntervalProgress calculates accurate interval ratios for daytime and overnight windows', () => {
+  const sample = {
+    Fajr: 300, // 05:00
+    Sunrise: 380,
+    Dhuhr: 730,
+    Asr: 940, // 15:40
+    Maghrib: 1080, // 18:00
+    Isha: 1170, // 19:30
+  };
+
+  // Midpoint between Asr (940m) and Maghrib (1080m) is 1010m (16:50) -> 50% progress
+  const midday = getPrayerIntervalProgress(sample, 1010, 0);
+  assert.equal(midday.previousName, 'Asr');
+  assert.equal(midday.nextName, 'Maghrib');
+  assert.equal(midday.isTomorrow, false);
+  assert.equal(midday.progress, 0.5);
+  assert.equal(midday.countdownFormatted, '01:10:00');
+
+  // After Isha (19:30 -> 05:00 next day = 570m total). At 22:30 (180m elapsed), 390m remain
+  const lateNight = getPrayerIntervalProgress(sample, 22 * 60 + 30, 0);
+  assert.equal(lateNight.previousName, 'Isha');
+  assert.equal(lateNight.nextName, 'Fajr');
+  assert.equal(lateNight.isTomorrow, true);
+  assert.equal(lateNight.remainingSeconds, 390 * 60);
+  assert.ok(Math.abs(lateNight.progress - 180 / 570) < 1e-6);
+
+  // Before Fajr at 02:00 (390m since 19:30, 180m left until 05:00)
+  const preFajr = getPrayerIntervalProgress(sample, 2 * 60, 0);
+  assert.equal(preFajr.previousName, 'Isha');
+  assert.equal(preFajr.nextName, 'Fajr');
+  assert.equal(preFajr.isTomorrow, false);
+  assert.equal(preFajr.remainingSeconds, 180 * 60);
 });
 
 test('evaluateFeedShield strips all Netflix and Prime Video promotional ads by default', () => {
