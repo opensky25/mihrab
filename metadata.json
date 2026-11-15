@@ -1,0 +1,6 @@
+{
+  "name": "Mihrab TV",
+  "description": "Ad-free, geo-restricted Android TV launcher with live sports schedules and standings, worldwide prayer times, Adhan backgrounds, post-Adhan supplications, live channels, and TV app integration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
